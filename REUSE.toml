@@ -1,0 +1,20 @@
+version = 1
+SPDX-PackageName = "Rigel"
+SPDX-PackageDownloadLocation = "https://github.com/OWNER/rigel"
+
+# Files that cannot carry a header (data, generated, licenses, platform
+# templates from `flutter create`). Source files carry SPDX headers; the
+# policy check enforces that for .rs, .dart, .py, .sh, .kt, .swift.
+
+[[annotations]]
+path = [
+  ".github/CODEOWNERS", "COPYING", "LICENSE", "DCO", ".gitignore", ".gitattributes", ".editorconfig",
+  "**/*.md", "**/*.json", "**/*.toml", "**/*.lock", "**/*.txt", "**/*.yml", "**/*.yaml",
+  "**/*.arb", "**/*.age", "**/*.passphrase",
+  "app/android/**", "app/ios/**", "app/macos/**", "app/linux/**", "app/windows/**",
+  "app/web/**", "app/.metadata", "app/.gitignore",
+  "core/supply-chain/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 The Rigel Authors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

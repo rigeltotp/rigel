@@ -1,0 +1,69 @@
+Rigel — open-source TOTP/HOTP authenticator
+Copyright (C) 2026 The Rigel Authors (see the Git history for individual
+contributors)
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+The full text of the GNU General Public License version 3 is in the file
+COPYING. The additional permission below applies to the whole project.
+
+SPDX-License-Identifier: GPL-3.0-or-later
+
+
+-------------------------------------------------------------------------------
+Additional permission under GNU GPL version 3 section 7
+("Rigel App Store Exception", version 1.0)
+-------------------------------------------------------------------------------
+
+1. Purpose. Some application distribution platforms ("App Stores", for
+   example the Apple App Store, Google Play or the Microsoft Store) impose
+   terms of service or usage rules on the people who download from them,
+   such as limits on the number of devices, digital rights management,
+   restrictions on redistribution, or additional license terms. Such terms
+   could be read as "further restrictions" that section 10 of the GNU GPL
+   forbids. This permission removes that conflict so that Rigel can be
+   offered in App Stores, while keeping every recipient's freedoms.
+
+2. Permission. As a special exception, the copyright holders of Rigel give
+   you permission to convey this program, or a work based on it, in object
+   code form through an App Store, even though the App Store's terms of
+   service or usage rules impose restrictions on recipients that would
+   otherwise be incompatible with the GNU GPL, provided that all of the
+   following conditions are met:
+
+   a) The Corresponding Source of the conveyed object code is available to
+      every recipient, free of charge and under the terms of the GNU GPL
+      (including this permission), by a method that satisfies section 6 of
+      the GNU GPL, for example a public source repository linked from the
+      App Store listing or from within the application.
+
+   b) You do not impose, by your own license terms, any restriction on the
+      recipients' exercise of the rights granted by the GNU GPL beyond those
+      that the App Store itself requires as a condition of distribution.
+
+   c) The App Store's restrictions apply only to the copy obtained through
+      that App Store. Recipients remain free to obtain, use, modify and
+      redistribute the program outside the App Store under the GNU GPL.
+
+3. Scope. This permission applies only to the files of this project that are
+   covered by this LICENSE file, and to modified versions of them that keep
+   this permission. It does not grant any permission for code of third
+   parties that is not covered by this LICENSE file.
+
+4. Removal. As allowed by section 7 of the GNU GPL, you may remove this
+   additional permission from your copy or modified version of the program.
+   If you do, the remaining terms are those of the GNU GPL alone.
+
+Contributions to Rigel are accepted only under these terms (the GNU GPL
+version 3 or later together with this additional permission), certified with
+the Developer Certificate of Origin; see CONTRIBUTING.md.
+
+Note for maintainers: this text has not been reviewed by a lawyer. Have it
+reviewed before the first public release.
