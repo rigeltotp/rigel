@@ -1,0 +1,108 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# cargo-deny policy for Rigel. Changes need maintainer review (CLAUDE.md, §5).
+# Run from core/: `cargo deny check`
+
+[graph]
+# Check every target we ship to, so platform-specific dependencies are covered.
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc",
+    "aarch64-pc-windows-msvc",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+    "aarch64-apple-ios",
+    "aarch64-apple-ios-sim",
+    "aarch64-linux-android",
+    "armv7-linux-androideabi",
+    "x86_64-linux-android",
+]
+all-features = true
+
+[advisories]
+# RustSec advisory database. This also covers what `cargo audit` checks.
+version = 2
+yanked = "deny"
+unmaintained = "workspace"
+ignore = []
+
+[licenses]
+version = 2
+# Permissive licenses only. Third-party GPL/LGPL/AGPL code is excluded on
+# purpose: the App Store permission in LICENSE can only cover code whose
+# copyright holders are Rigel contributors.
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "CC0-1.0",
+    "Unicode-3.0",
+]
+confidence-threshold = 0.93
+# The allowlist anticipates planned dependencies; unused entries are fine.
+unused-allowed-license = "allow"
+# Our own crates are GPL-3.0-or-later and never published.
+[licenses.private]
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+highlight = "all"
+# Rigel contains no network code (CLAUDE.md, §1 and rule 8). These crates
+# provide HTTP, TLS, sockets, DNS, async network runtimes, telemetry or crash
+# reporting. Do not remove entries to make a dependency fit; find another
+# dependency instead. tools/ci/check_policy.py enforces the same list on
+# Cargo.lock as a second line of defence.
+deny = [
+    # HTTP clients and servers
+    { crate = "reqwest", reason = "network: Rigel has no network code" },
+    { crate = "hyper", reason = "network: Rigel has no network code" },
+    { crate = "hyper-util", reason = "network: Rigel has no network code" },
+    { crate = "h2", reason = "network: Rigel has no network code" },
+    { crate = "h3", reason = "network: Rigel has no network code" },
+    { crate = "http-body", reason = "network: Rigel has no network code" },
+    { crate = "ureq", reason = "network: Rigel has no network code" },
+    { crate = "curl", reason = "network: Rigel has no network code" },
+    { crate = "curl-sys", reason = "network: Rigel has no network code" },
+    { crate = "isahc", reason = "network: Rigel has no network code" },
+    { crate = "surf", reason = "network: Rigel has no network code" },
+    { crate = "attohttpc", reason = "network: Rigel has no network code" },
+    { crate = "minreq", reason = "network: Rigel has no network code" },
+    { crate = "actix-web", reason = "network: Rigel has no network code" },
+    { crate = "axum", reason = "network: Rigel has no network code" },
+    { crate = "warp", reason = "network: Rigel has no network code" },
+    { crate = "tiny_http", reason = "network: Rigel has no network code" },
+    # TLS and QUIC
+    { crate = "rustls", reason = "network: Rigel has no network code" },
+    { crate = "native-tls", reason = "network: Rigel has no network code" },
+    { crate = "openssl", reason = "network/TLS; crypto goes through the core facade" },
+    { crate = "openssl-sys", reason = "network/TLS; crypto goes through the core facade" },
+    { crate = "quinn", reason = "network: Rigel has no network code" },
+    # Sockets, DNS, WebSockets, network runtimes
+    { crate = "socket2", reason = "network: Rigel has no network code" },
+    { crate = "mio", reason = "network I/O: Rigel has no network code" },
+    { crate = "trust-dns-resolver", reason = "network: Rigel has no network code" },
+    { crate = "hickory-resolver", reason = "network: Rigel has no network code" },
+    { crate = "tungstenite", reason = "network: Rigel has no network code" },
+    { crate = "tokio-tungstenite", reason = "network: Rigel has no network code" },
+    { crate = "async-std", reason = "network runtime: Rigel has no network code" },
+    # Telemetry and crash reporting
+    { crate = "sentry", reason = "telemetry: Rigel collects no data" },
+    { crate = "opentelemetry", reason = "telemetry: Rigel collects no data" },
+    { crate = "tracing-opentelemetry", reason = "telemetry: Rigel collects no data" },
+    { crate = "prometheus", reason = "telemetry: Rigel collects no data" },
+    # Vault encryption is done per record in Rust (docs/specs/vault-format.md).
+    { crate = "sqlcipher", reason = "vault design: per-record AEAD, no SQLCipher" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
