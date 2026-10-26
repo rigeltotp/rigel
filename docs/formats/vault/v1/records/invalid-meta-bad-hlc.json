@@ -1,0 +1,58 @@
+{
+  "created_at": "2026-10-25T20:15:00Z",
+  "issuer": {
+    "v": "Example",
+    "t": "2026-10-25"
+  },
+  "account": {
+    "v": "alice@example.com",
+    "t": "0192f3a1b2c4-0000-8f1e2d3c4b5a6978"
+  },
+  "tags": {
+    "v": [
+      "work"
+    ],
+    "t": "0192f3a1b2c4-0000-8f1e2d3c4b5a6978"
+  },
+  "favorite": {
+    "v": false,
+    "t": "0192f3a1b2c4-0000-8f1e2d3c4b5a6978"
+  },
+  "sort_key": {
+    "v": "a0",
+    "t": "0192f3a1b2c4-0000-8f1e2d3c4b5a6978"
+  },
+  "websites": {
+    "v": [
+      "example.com"
+    ],
+    "t": "0192f3a1b2c4-0000-8f1e2d3c4b5a6978"
+  },
+  "apps": {
+    "v": [
+      {
+        "platform": "android",
+        "id": "com.example.app",
+        "cert_sha256": [
+          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+        ]
+      }
+    ],
+    "t": "0192f3a1b2c4-0000-8f1e2d3c4b5a6978"
+  },
+  "icon": {
+    "v": {
+      "source": "builtin",
+      "id": "example"
+    },
+    "t": "0192f3a1b2c4-0000-8f1e2d3c4b5a6978"
+  },
+  "note": {
+    "v": "",
+    "t": "0192f3a1b2c4-0000-8f1e2d3c4b5a6978"
+  },
+  "deleted": {
+    "v": false,
+    "t": "0192f3a1b2c4-0000-8f1e2d3c4b5a6978"
+  }
+}

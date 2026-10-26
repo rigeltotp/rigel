@@ -1,0 +1,24 @@
+{
+  "format": "rigel-backup",
+  "schema_version": 1,
+  "created_at": "2026-10-25T20:15:00Z",
+  "app": {
+    "name": "Rigel",
+    "version": "1.0.0"
+  },
+  "entries": [
+    {
+      "id": "0b8b2d55-2f0a-4e2c-a8d9-6a8f6d1f7e01",
+      "type": "totp",
+      "issuer": "Example",
+      "account": "alice@example.com",
+      "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "websites": [
+        "https://example.com/login"
+      ]
+    }
+  ]
+}

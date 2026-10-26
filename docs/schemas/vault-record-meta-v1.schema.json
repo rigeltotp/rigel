@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:rigel:schema:vault-record-meta:1",
+  "title": "Vault entry meta record (kind 1), schema version 1",
+  "description": "Plaintext of a meta record before encryption, without the trailing padding. Normative text: docs/specs/vault-format.md, section 6.2.",
+  "type": "object",
+  "required": ["created_at", "issuer", "account", "tags", "favorite", "sort_key", "websites", "apps", "icon", "note", "deleted"],
+  "properties": {
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "issuer":   { "$ref": "#/$defs/field", "properties": { "v": { "type": "string", "maxLength": 256 } } },
+    "account":  { "$ref": "#/$defs/field", "properties": { "v": { "type": "string", "maxLength": 256 } } },
+    "tags":     { "$ref": "#/$defs/field", "properties": { "v": { "type": "array", "maxItems": 64, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 64 } } } },
+    "favorite": { "$ref": "#/$defs/field", "properties": { "v": { "type": "boolean" } } },
+    "sort_key": { "$ref": "#/$defs/field", "properties": { "v": { "type": "string", "pattern": "^[0-9A-Za-z]{1,64}$" } } },
+    "websites": { "$ref": "#/$defs/field", "properties": { "v": { "type": "array", "maxItems": 64, "uniqueItems": true, "items": { "type": "string", "maxLength": 253, "pattern": "^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9-]{2,63}$" } } } },
+    "apps":     { "$ref": "#/$defs/field", "properties": { "v": { "type": "array", "maxItems": 64, "items": { "type": "object", "required": ["platform", "id"], "properties": { "platform": { "enum": ["android", "apple"] }, "id": { "type": "string", "minLength": 1, "maxLength": 256 }, "cert_sha256": { "type": "array", "maxItems": 8, "items": { "type": "string" } } } } } } },
+    "icon":     { "$ref": "#/$defs/field" },
+    "note":     { "$ref": "#/$defs/field", "properties": { "v": { "type": "string", "maxLength": 4096 } } },
+    "deleted":  { "$ref": "#/$defs/field", "properties": { "v": { "type": "boolean" } } }
+  },
+  "$defs": {
+    "timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
+    "hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{16}$" },
+    "field": {
+      "type": "object",
+      "required": ["v", "t"],
+      "properties": { "t": { "$ref": "#/$defs/hlc" } }
+    }
+  }
+}

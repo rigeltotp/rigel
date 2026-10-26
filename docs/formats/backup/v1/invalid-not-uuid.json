@@ -1,0 +1,21 @@
+{
+  "format": "rigel-backup",
+  "schema_version": 1,
+  "created_at": "2026-10-25T20:15:00Z",
+  "app": {
+    "name": "Rigel",
+    "version": "1.0.0"
+  },
+  "entries": [
+    {
+      "id": "not-a-uuid",
+      "type": "totp",
+      "issuer": "Example",
+      "account": "alice@example.com",
+      "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30
+    }
+  ]
+}
