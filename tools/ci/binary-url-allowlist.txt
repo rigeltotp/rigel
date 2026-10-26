@@ -40,3 +40,10 @@ http://anglebug.com/                        # ANGLE bug tracker reference in the
 https://shorturl.at/drFY7                   # documentation short link in a message of the Flutter engine for Windows
 https://www.khronos.org/spir/               # SPIR-V tooling documentation link in the Flutter engine for Windows
 http://schemas.microsoft.com/SMI/           # XML namespace in the Windows application manifest, never fetched
+http://certs.apple.com/                     # certificate chain in the Apple code signature of Flutter.framework, never fetched by the app
+http://crl.apple.com/                       # same: revocation list URL inside an Apple signing certificate
+http://ocsp.apple.com/                      # same: OCSP responder URL inside an Apple signing certificate
+http://www.apple.com/appleca                # same: Apple certification authority policy URL
+https://www.apple.com/appleca/              # same: Apple certification authority policy URL
+https://www.apple.com/certificateauthority/ # same: Apple certification authority policy URL
+http://scripts.sil.org/OFL                  # SIL Open Font License text in an embedded font
