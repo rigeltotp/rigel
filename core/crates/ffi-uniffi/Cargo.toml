@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+[package]
+name = "rigel-ffi-uniffi"
+description = "Rigel binding for Swift and Kotlin extensions (UniFFI, added in E10)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lib]
+name = "rigel_ffi_uniffi"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+rigel-core.workspace = true
+rigel-platform.workspace = true
+
+[lints]
+workspace = true

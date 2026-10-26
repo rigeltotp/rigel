@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+[workspace]
+resolver = "3"
+members = [
+    "crates/core",
+    "crates/platform",
+    "crates/ffi-dart",
+    "crates/ffi-uniffi",
+]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.97"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/OWNER/rigel" # TODO(E1): set once the GitHub repository exists
+publish = false
+
+[workspace.dependencies]
+# Internal crates. Third-party dependencies are added here, with a one-line
+# justification each (see CONTRIBUTING.md) and only after `cargo deny check`.
+rigel-core = { path = "crates/core" }
+rigel-platform = { path = "crates/platform" }
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+missing_docs = "warn"
+unused_must_use = "deny"
+unreachable_pub = "warn"
+
+[workspace.lints.clippy]
+# No panicking shortcuts in library code (allowed in tests via clippy.toml).
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+# Library code never prints: output could leak secrets.
+print_stdout = "deny"
+print_stderr = "deny"
+# Lossy or wrapping integer casts are a classic source of parser bugs.
+cast_possible_truncation = "deny"
+cast_sign_loss = "deny"
+cast_possible_wrap = "deny"
+indexing_slicing = "warn"
+arithmetic_side_effects = "warn"
+
+[profile.release]
+# Integer overflow is a bug, also in release builds.
+overflow-checks = true
+lto = true
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
+
+[profile.dev]
+panic = "unwind"

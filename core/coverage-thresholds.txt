@@ -1,0 +1,4 @@
+# Minimum line coverage (percent) of rigel-core, enforced by CI (job "coverage").
+# Raise as the core grows (QA concept: 90 overall; 95 for crypto facade, OTP
+# and backup, enforced per module from E3/E4). Never lower to get green.
+90

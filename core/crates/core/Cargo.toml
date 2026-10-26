@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+[package]
+name = "rigel-core"
+description = "Rigel core: OTP, crypto facade, vault, backup, importers and sync protocol. Pure logic, no I/O."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# The crate is called `rigel-core` (lib `rigel_core`), not `core`, because a
+# crate named `core` would shadow Rust's built-in `core` library.
+[lib]
+name = "rigel_core"
+
+[dependencies]
+
+[lints]
+workspace = true
