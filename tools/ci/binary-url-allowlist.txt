@@ -47,3 +47,4 @@ http://www.apple.com/appleca                # same: Apple certification authorit
 https://www.apple.com/appleca/              # same: Apple certification authority policy URL
 https://www.apple.com/certificateauthority/ # same: Apple certification authority policy URL
 http://scripts.sil.org/OFL                  # SIL Open Font License text in an embedded font
+https://llvm.googlesource.com/llvm-project   # compiler identification string in the Flutter macOS debug symbols
