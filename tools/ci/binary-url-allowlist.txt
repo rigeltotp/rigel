@@ -1,0 +1,33 @@
+# Prefixes of URL strings that may appear in built binaries.
+# Each entry needs a reason; the check fails on everything else.
+
+# License texts and headers
+https://www.gnu.org/licenses/
+http://www.gnu.org/licenses/
+https://www.apache.org/licenses/
+http://www.apache.org/licenses/
+https://opensource.org/licenses/
+https://creativecommons.org/
+https://www.unicode.org/
+
+# XML / plist / SVG namespaces (identifiers, never fetched)
+http://www.w3.org/
+https://www.w3.org/
+http://schemas.android.com/
+http://www.apple.com/DTDs/
+http://ns.adobe.com/
+
+# Documentation links printed in Flutter / Dart / Rust error messages
+https://flutter.dev/
+https://docs.flutter.dev/
+https://api.flutter.dev/
+https://github.com/flutter/
+https://github.com/dart-lang/
+https://dart.dev/
+https://doc.rust-lang.org/
+https://github.com/rust-lang/
+https://rust-lang.github.io/
+http://labs.creativecommons.org/licenses/   # license text embedded in the Flutter engine
+http://www.w3c.orghttp://dev.w3.org/        # font license text (Ahem test font) in the Flutter engine
+https://dartbug.com/                        # bug link in a Dart VM error message
+https://pub.dev/                            # package hint in a Dart framework error message

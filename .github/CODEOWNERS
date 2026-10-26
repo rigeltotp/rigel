@@ -1,0 +1,20 @@
+# Areas that always need human review (CLAUDE.md, section 5).
+# TODO(E1): replace @OWNER with the maintainers' GitHub team once the
+# repository exists.
+/core/crates/core/src/crypto*     @OWNER
+/core/crates/core/src/vault*      @OWNER
+/core/crates/platform/            @OWNER
+/core/crates/ffi-dart/            @OWNER
+/core/crates/ffi-uniffi/          @OWNER
+/core/deny.toml                   @OWNER
+/core/supply-chain/               @OWNER
+/docs/specs/                      @OWNER
+/docs/threat-model.md             @OWNER
+/docs/formats/                    @OWNER
+/.github/                         @OWNER
+/tools/ci/                        @OWNER
+/app/android/app/src/main/AndroidManifest.xml @OWNER
+/app/*/Runner/*.entitlements      @OWNER
+/SECURITY.md                      @OWNER
+/LICENSE                          @OWNER
+/DCO                              @OWNER

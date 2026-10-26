@@ -1,0 +1,371 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Changes to this file need maintainer review (CLAUDE.md, section 5).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUSTFLAGS: -D warnings
+
+jobs:
+  policy:
+    name: Policy (no network, manifests, pinned actions, SPDX)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+
+      - name: Policy checks
+        run: python3 tools/ci/check_policy.py
+      - name: Policy check self-tests
+        run: python3 -m unittest discover -s tools/ci -p 'test_*.py' -v
+      - name: REUSE (SPDX license headers, REUSE.toml)
+        run: pip install --quiet reuse==6.2.0 && reuse lint
+
+  dco:
+    name: DCO sign-off
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Fetch pull request commits
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --filter=blob:none origin "$BASE" "$HEAD"
+          git checkout -q --detach "$HEAD"
+      - name: Check sign-offs
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: tools/ci/check_dco.sh "$BASE" "$HEAD"
+      - name: Check Conventional Commits and signatures
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: python3 tools/ci/check_commits.py "$BASE" "$HEAD"
+
+  rust:
+    name: Rust (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: core
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+
+      - name: Toolchain (from rust-toolchain.toml)
+        run: rustup show active-toolchain || rustup toolchain install
+      - name: Format
+        if: runner.os == 'Linux'
+        run: cargo fmt --all --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Install cargo-nextest (pinned)
+        run: cargo install --locked cargo-nextest@0.9.148
+      - name: Tests (nextest)
+        run: cargo nextest run --workspace --locked
+      - name: Doc tests
+        run: cargo test --workspace --doc --locked
+
+  coverage:
+    name: Coverage (cargo-llvm-cov)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+      - name: Toolchain with llvm-tools
+        run: rustup show active-toolchain || rustup toolchain install; rustup component add llvm-tools-preview
+      - name: Install cargo-llvm-cov (pinned)
+        run: cargo install --locked cargo-llvm-cov@0.9.1
+      - name: Coverage of rigel-core (threshold in core/coverage-thresholds.txt)
+        run: |
+          threshold="$(grep -v '^#' coverage-thresholds.txt | head -1 | tr -d '[:space:]')"
+          cargo llvm-cov --locked -p rigel-core --fail-under-lines "$threshold" --summary-only
+
+  rust-supply-chain:
+    name: Rust supply chain (cargo-deny, cargo-vet)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+
+      - name: Install cargo-deny and cargo-vet (pinned, from crates.io)
+        run: cargo install --locked cargo-deny@0.20.2 cargo-vet@0.10.3
+      - name: cargo deny (advisories, licenses, bans incl. network crates, sources)
+        run: cargo deny --locked check
+      - name: cargo audit
+        run: cargo install --locked cargo-audit@0.22.2 && cargo audit
+      - name: cargo vet
+        run: cargo vet --locked
+
+  security-scans:
+    name: Secret scan, workflow audit, Dart advisories
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+      - name: gitleaks (pinned version, built from source via Go module proxy)
+        run: |
+          go install github.com/zricethezav/gitleaks/v8@v8.30.1
+          "$(go env GOPATH)/bin/gitleaks" detect --source . --no-banner --redact
+      - name: zizmor (workflow security audit)
+        run: pip install --quiet zizmor==1.30.1 && zizmor --min-severity medium .github
+      - name: osv-scanner (pubspec.lock and Cargo.lock)
+        run: |
+          go install github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.0
+          "$(go env GOPATH)/bin/osv-scanner" scan source --lockfile=app/pubspec.lock --lockfile=core/Cargo.lock
+
+  flutter:
+    name: Flutter (format, analyze, test)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+
+      - name: Install Flutter (pinned, checksum-verified)
+        run: ../tools/ci/install-flutter.sh
+      - name: Dependencies (lockfile enforced)
+        run: flutter pub get --enforce-lockfile
+      - name: Format
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Analyze
+        run: flutter analyze
+      - name: Tests
+        run: flutter test
+
+  formats:
+    name: Formats (test files)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+      - name: Schemas accept valid and reject invalid test files
+        run: pip install --quiet jsonschema==4.25.1 && python3 tools/ci/check_formats.py
+      - name: Encrypted test backups open with the plain age CLI
+        run: sudo apt-get install -y --no-install-recommends age && tools/ci/check_backup_interop.sh
+
+  sbom:
+    name: SBOM (CycloneDX) and dependency diff
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+      - name: Rust SBOM (cargo-cyclonedx, pinned)
+        working-directory: core
+        run: |
+          cargo install --locked cargo-cyclonedx@0.5.9
+          cargo cyclonedx --format json --spec-version 1.5
+      - name: Dart SBOM (from pubspec.lock)
+        run: python3 tools/ci/sbom_dart.py app/pubspec.lock sbom-dart.cdx.json
+      # TODO(E16): upload these as workflow artifacts and sign them at release
+      # time. Uploading needs actions/upload-artifact pinned to a commit SHA,
+      # which can only be looked up once the repository exists.
+      - name: Dependency diff in the job summary (pull requests)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git -c protocol.version=2 fetch -q --no-tags --depth=1 origin "$BASE" 2>/dev/null || true
+          python3 tools/ci/dep_diff.py "$BASE" "$HEAD" >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: Build ${{ matrix.target }}
+    needs: [policy, flutter, formats]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: android
+            os: ubuntu-24.04
+          - target: linux
+            os: ubuntu-24.04
+          - target: windows
+            os: windows-2025
+          - target: macos
+            os: macos-15
+          - target: ios
+            os: macos-15
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+
+      - name: Install Flutter (pinned, checksum-verified)
+        run: ../tools/ci/install-flutter.sh
+      - name: Linux build dependencies
+        if: matrix.target == 'linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang cmake ninja-build pkg-config libgtk-3-dev
+      - name: Java 17 for Gradle
+        if: matrix.target == 'android'
+        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+      - name: Dependencies (lockfile enforced)
+        run: flutter pub get --enforce-lockfile
+      - name: Build
+        run: |
+          case "${{ matrix.target }}" in
+            android) flutter build apk --release ;;
+            ios)     flutter build ios --release --no-codesign ;;
+            *)       flutter build "${{ matrix.target }}" --release ;;
+          esac
+      - name: No URL strings in the built binaries
+        run: python3 ../tools/ci/check_binary_urls.py build/${{ matrix.target == 'android' && 'app/outputs/flutter-apk' || matrix.target == 'linux' && 'linux/x64/release/bundle' || matrix.target == 'windows' && 'windows/x64/runner/Release' || matrix.target == 'macos' && 'macos/Build/Products/Release' || 'ios/iphoneos' }}
+      # The merged release manifest includes permissions added by plugins,
+      # which the source check cannot see.
+      - name: No network permission in the release APK
+        if: matrix.target == 'android'
+        run: |
+          aapt2="$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)"
+          perms="$("$aapt2" dump permissions build/app/outputs/flutter-apk/app-release.apk)"
+          echo "$perms"
+          if echo "$perms" | grep -E "android.permission.(INTERNET|ACCESS_NETWORK_STATE|ACCESS_WIFI_STATE|CHANGE_NETWORK_STATE)"; then
+            echo "Release APK requests a network permission." >&2
+            exit 1
+          fi
+      - name: No network entitlement in the macOS release app
+        if: matrix.target == 'macos'
+        run: |
+          ents="$(codesign -d --entitlements - --xml build/macos/Build/Products/Release/Rigel.app 2>/dev/null || true)"
+          echo "$ents"
+          if echo "$ents" | grep -q "com.apple.security.network"; then
+            echo "macOS release app has a network entitlement." >&2
+            exit 1
+          fi

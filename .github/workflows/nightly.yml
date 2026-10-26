@@ -1,0 +1,186 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Changes to this file need maintainer review (CLAUDE.md, section 5).
+# Scheduled quality runs. Jobs without anything to run yet (no fuzz targets,
+# no integration tests) skip cleanly; the structure is here so epics only
+# add content. A red run opens an issue (job "report").
+name: Nightly
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  fuzz:
+    name: Fuzz (long)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+      - name: Run all fuzz targets, 30 minutes each
+        shell: bash
+        run: |
+          if ! ls core/fuzz/fuzz_targets/*.rs >/dev/null 2>&1; then
+            echo "No fuzz targets yet (added with E3 and later). Skipping."; exit 0
+          fi
+          rustup toolchain install nightly --profile minimal
+          cargo install --locked cargo-fuzz
+          cd core/fuzz
+          for t in $(cargo +nightly fuzz list); do
+            cargo +nightly fuzz run "$t" -- -max_total_time=1800
+          done
+
+  mutants:
+    name: Mutation tests (cargo-mutants)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+      - name: Mutate rigel-core (surviving mutants fail the job)
+        shell: bash
+        run: |
+          cargo install --locked cargo-mutants@27.1.0
+          cargo mutants --package rigel-core --no-shuffle
+
+  miri:
+    name: Miri (all of rigel-core)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+      - name: cargo miri test
+        run: |
+          rustup toolchain install nightly --profile minimal --component miri
+          cargo +nightly miri test -p rigel-core
+
+  integration:
+    name: Integration tests (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: android-emulator
+            os: ubuntu-24.04
+          - target: ios-simulator
+            os: macos-15
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+      - name: Run integration tests if there are any
+        run: |
+          if [ ! -d integration_test ]; then
+            echo "No integration tests yet (added with E7 and E11). Skipping."; exit 0
+          fi
+          echo "Wire up the emulator/simulator run here (E7)." >&2
+          exit 1
+
+  interop:
+    name: Backup interoperability (age CLI)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      # Checkout without third-party actions (CLAUDE.md rule 17). The token is
+      # removed from the git config right after the fetch.
+      - name: Checkout
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+      - name: age/rage can open Rigel backups, and the reverse
+        shell: bash
+        run: |
+          if [ ! -d docs/formats/backup ] || ! ls docs/formats/backup/*/*.rigel.age >/dev/null 2>&1; then
+            echo "No backup test files yet. Skipping."; exit 0
+          fi
+          sudo apt-get install -y --no-install-recommends age
+          tools/ci/check_backup_interop.sh
+
+  report:
+    name: Report failures as issue
+    needs: [fuzz, mutants, miri, integration, interop]
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the nightly issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Nightly run failed"
+          existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')"
+          body="The nightly quality run failed: $RUN_URL
+
+          If a fuzz target found a crash, treat it as a security report: do not paste inputs here, follow SECURITY.md."
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
+          fi
