@@ -1,0 +1,15 @@
+{
+  "@@locale": "en",
+  "appTitle": "Rigel",
+  "@appTitle": {
+    "description": "Name of the app, shown in the title bar and task switcher."
+  },
+  "foundationNotice": "Rigel is being built. This build contains no features yet and stores no data.",
+  "@foundationNotice": {
+    "description": "Placeholder text on the start screen until the first features land."
+  },
+  "offlineNotice": "Rigel works completely offline and never connects to the internet.",
+  "@offlineNotice": {
+    "description": "Explains the offline promise on the start screen."
+  }
+}

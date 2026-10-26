@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: rigel
+description: "Rigel: open-source offline TOTP/HOTP authenticator"
+publish_to: 'none'
+version: 0.0.1+1
+
+environment:
+  sdk: ^3.13.7
+  flutter: 3.47.8
+
+# Keep this list short. Every package needs a one-line justification and
+# must not do networking (tools/ci/check_policy.py bans HTTP, sockets,
+# Firebase, analytics and crash reporting packages).
+dependencies:
+  flutter:
+    sdk: flutter
+  # German and English UI from the start (SDK package, no network).
+  flutter_localizations:
+    sdk: flutter
+  # Message formatting for the generated localizations; version is pinned by
+  # flutter_localizations.
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
