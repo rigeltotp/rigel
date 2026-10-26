@@ -31,3 +31,20 @@ http://labs.creativecommons.org/licenses/   # license text embedded in the Flutt
 http://www.w3c.orghttp://dev.w3.org/        # font license text (Ahem test font) in the Flutter engine
 https://dartbug.com/                        # bug link in a Dart VM error message
 https://pub.dev/                            # package hint in a Dart framework error message
+http://www.unicode.org/copyright.html      # ICU license notice (http variant) embedded in the Flutter engine
+https://android.googlesource.com/toolchain/llvm-project   # compiler identification string in NDK-built native libraries
+https://llvm.googlesource.com/a/llvm-project              # compiler identification string in NDK-built native libraries
+https://developer.android.com/guide/topics/permissions/overview   # documentation link in AndroidX / Flutter embedding code
+https://developer.android.com/reference/android/view/View   # documentation link in Flutter embedding code
+http://anglebug.com/                        # ANGLE bug tracker reference in the Flutter engine for Windows
+https://shorturl.at/drFY7                   # documentation short link in a message of the Flutter engine for Windows
+https://www.khronos.org/spir/               # SPIR-V tooling documentation link in the Flutter engine for Windows
+http://schemas.microsoft.com/SMI/           # XML namespace in the Windows application manifest, never fetched
+http://certs.apple.com/                     # certificate chain in the Apple code signature of Flutter.framework, never fetched by the app
+http://crl.apple.com/                       # same: revocation list URL inside an Apple signing certificate
+http://ocsp.apple.com/                      # same: OCSP responder URL inside an Apple signing certificate
+http://www.apple.com/appleca                # same: Apple certification authority policy URL
+https://www.apple.com/appleca/              # same: Apple certification authority policy URL
+https://www.apple.com/certificateauthority/ # same: Apple certification authority policy URL
+http://scripts.sil.org/OFL                  # SIL Open Font License text in an embedded font
+https://llvm.googlesource.com/llvm-project   # compiler identification string in the Flutter macOS debug symbols
