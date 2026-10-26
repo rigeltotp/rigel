@@ -5,6 +5,8 @@ version: 2
 updates:
   - package-ecosystem: cargo
     directory: /core
+    cooldown:
+      default-days: 7
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
@@ -12,6 +14,8 @@ updates:
       prefix: "build(deps)"
   - package-ecosystem: pub
     directory: /app
+    cooldown:
+      default-days: 7
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
@@ -19,6 +23,8 @@ updates:
       prefix: "build(deps)"
   - package-ecosystem: github-actions
     directory: /
+    cooldown:
+      default-days: 7
     schedule:
       interval: monthly
     commit-message:

@@ -286,11 +286,14 @@ jobs:
       - name: Dependency diff in the job summary (pull requests)
         if: github.event_name == 'pull_request'
         env:
+          TOKEN: ${{ github.token }}
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          git -c protocol.version=2 fetch -q --no-tags --depth=1 origin "$BASE" 2>/dev/null || true
-          python3 tools/ci/dep_diff.py "$BASE" "$HEAD" >> "$GITHUB_STEP_SUMMARY"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$auth" fetch -q --no-tags --depth=1 origin "$BASE"
+          # The pull request merge commit is checked out; compare against the base.
+          python3 tools/ci/dep_diff.py "$BASE" HEAD >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: Build ${{ matrix.target }}

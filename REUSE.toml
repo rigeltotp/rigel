@@ -18,3 +18,11 @@ path = [
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The Rigel Authors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Source files carry the license identifier in their header; the copyright
+# line is the same for all of them.
+[[annotations]]
+path = ["**/*.rs", "**/*.dart", "**/*.py", "**/*.sh", "**/*.kt", "**/*.swift"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 The Rigel Authors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
