@@ -24,9 +24,8 @@ Report privately through GitHub's private vulnerability reporting:
 go to the repository's **Security** tab and choose
 **Report a vulnerability**. Only the maintainers can see these reports.
 
-<!-- TODO(maintainers, before the first public commit): add a security
-contact e-mail address and an OpenPGP key fingerprint as a fallback channel
-for reporters without a GitHub account. -->
+Until release 1.0 this is the only reporting channel; an e-mail contact is
+added with 1.0. You need a GitHub account to report.
 
 Please include, as far as you can:
 
