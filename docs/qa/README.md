@@ -13,9 +13,8 @@ reports and the rules around them.
 3. **After every epic**: an independent QA pass checks the epic against its
    Definition of Done and writes `E<n>.md` here.
 
-The full concept (what runs when, Definition of Done per epic, QA pass
-procedure) is maintained in `docs/qa/` as it is adopted from the QA concept;
-this file lists what exists today.
+The Definition of Done per epic and the QA pass procedure are in
+[definition-of-done.md](definition-of-done.md); this file lists what exists today.
 
 ## What CI runs today (E1)
 

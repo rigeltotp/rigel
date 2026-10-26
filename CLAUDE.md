@@ -42,8 +42,8 @@ ads, analytics SDKs, watch apps, own sync server.
 permission for app-store distribution (`LICENSE`, full GPL text in `COPYING`).
 Every new source file (`.rs`, `.dart`, `.py`, `.sh`, `.kt`, `.swift`) starts
 with an SPDX header: `// SPDX-License-Identifier: GPL-3.0-or-later` (`#` in
-Python/shell). CI enforces it (`spdx-headers`, `reuse lint`). The wording of
-the app-store permission has not been reviewed by a lawyer yet.
+Python/shell); CI enforces it. The app-store permission text is not yet
+lawyer-reviewed.
 <!-- REUSE-IgnoreEnd -->
 
 ## 2. Architecture
@@ -106,50 +106,37 @@ restored without the vault.
 ## 3. Repository layout
 
 ```
-core/                      Rust workspace (Cargo.toml, rust-toolchain.toml, deny.toml, supply-chain/)
-core/crates/core/          rigel-core: pure logic (formats, limits; OTP, crypto, vault, backup, import, sync to come)
-core/crates/platform/      rigel-platform: OS key stores, files, SQLite, FIDO2
-core/crates/ffi-dart/      rigel-ffi-dart: binding for Flutter (flutter_rust_bridge from E6)
-core/crates/ffi-uniffi/    rigel-ffi-uniffi: binding for Swift/Kotlin (UniFFI from E10)
-core/fuzz/                 cargo-fuzz targets, one per parser (first target arrives with E3)
+core/                      Rust workspace (toolchain, deny.toml, supply-chain/)
+core/crates/{core,platform,ffi-dart,ffi-uniffi}/   crates rigel-core, rigel-platform, rigel-ffi-dart, rigel-ffi-uniffi
+core/fuzz/                 cargo-fuzz targets, one per parser (first arrives with E3)
 app/                       Flutter app for all 5 platforms (UI only), l10n in lib/l10n/*.arb (de, en)
-native/ios/, native/android/   AutoFill extension, widgets: not created yet (E10)
-browser/                   Browser extensions from 1.1 (not created yet)
-docs/                      README, threat-model.md, specs/ (vault, backup, sync), schemas/, formats/ (test files),
-                           decisions/ (ADRs), spikes/, qa/
-tools/ci/                  CI scripts: check_policy.py (+ tests), check_formats.py, check_backup_interop.sh,
-                           check_binary_urls.py, check_commits.py, check_dco.sh, install-flutter.sh, SBOM/dependency diff
-.github/                   workflows (ci.yml, nightly.yml), CODEOWNERS, PR template, dependabot.yml
-LICENSE, COPYING, LICENSES/, DCO, SECURITY.md, CONTRIBUTING.md, REUSE.toml
+native/, browser/          not created yet (AutoFill/widgets in E10, browser extensions in 1.1)
+docs/                      threat-model.md, specs/, schemas/, formats/ (test files), decisions/ (ADRs), spikes/, qa/
+tools/ci/                  CI scripts; .github/ holds workflows, CODEOWNERS, PR template
 ```
 
 ## 4. Commands
 
-Verified locally on Linux on 2026-10-25 unless marked _(unverified)_.
+Verified locally on Linux (2026-10-25) unless marked _(unverified)_.
 
-Rust (run from `core/`; the toolchain is pinned in `rust-toolchain.toml`):
+Rust (from `core/`, toolchain pinned):
 
 ```sh
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
-cargo nextest run --workspace --locked      # install: cargo install --locked cargo-nextest@0.9.148
+cargo nextest run --workspace --locked
 cargo test --workspace --doc --locked
 cargo llvm-cov --locked -p rigel-core --fail-under-lines 90 --summary-only   # threshold: core/coverage-thresholds.txt
 cargo deny --locked check                   # licenses, bans (incl. network crates), advisories, sources
-cargo audit                                 # cargo install --locked cargo-audit@0.22.2
+cargo audit
 cargo vet --locked
 cargo +nightly miri test -p rigel-core      # _(unverified)_ required when touching any unsafe
 cargo +nightly fuzz run <target>            # _(unverified)_ in core/fuzz, for parser changes; no targets yet
 ```
 
-Bindings _(planned, E6/E10)_:
+Bindings _(planned, E6/E10)_: `flutter_rust_bridge_codegen generate` after changing the ffi-dart API; UniFFI command defined in E10.
 
-```sh
-flutter_rust_bridge_codegen generate   # after changing the ffi-dart API
-# UniFFI binding generation: command to be defined in E10
-```
-
-Flutter (run from `app/`; Flutter is pinned to 3.47.8, install with `tools/ci/install-flutter.sh`):
+Flutter (from `app/`; pinned 3.47.8, `tools/ci/install-flutter.sh`):
 
 ```sh
 flutter pub get --enforce-lockfile
@@ -159,25 +146,21 @@ flutter test
 flutter build linux --release              # also: apk, windows, macos, ios --no-codesign _(unverified)_
 ```
 
-Repository policy (run from the repo root):
+Repository policy (repo root; scripts in `tools/ci/`, see their docstrings):
 
 ```sh
-python3 tools/ci/check_policy.py                           # no network, manifests, entitlements, crypto facade, pins, SPDX
-python3 -m unittest discover -s tools/ci -p 'test_*.py'    # self-tests of the policy checks
-pip install jsonschema==4.25.1 && python3 tools/ci/check_formats.py   # test files vs. schemas
-tools/ci/check_backup_interop.sh                           # needs the age CLI
-python3 tools/ci/check_binary_urls.py <build output dir>   # no URL strings in binaries
-pip install reuse==6.2.0 && reuse lint                     # _(unverified)_ SPDX/REUSE
+python3 tools/ci/check_policy.py   # no network, manifests, entitlements, crypto facade, pins, SPDX
+python3 -m unittest discover -s tools/ci -p 'test_*.py'
+python3 tools/ci/check_formats.py  # needs jsonschema==4.25.1; also check_backup_interop.sh (age CLI)
+reuse lint                         # _(unverified)_ needs reuse==6.2.0
 ```
 
 Before declaring work done, run at least fmt, clippy, tests and `cargo deny`
 for the parts you touched, `check_policy.py`, and report the actual output.
 
-CI (`.github/workflows/ci.yml`) runs all of this on every pull request, plus
-gitleaks, zizmor, osv-scanner, an SBOM and builds for all five platforms.
-`nightly.yml` is the scaffold for long fuzzing, mutation tests, Miri and
-integration tests. Required checks and repository settings:
-`docs/qa/branch-protection.md`.
+CI (`ci.yml`) runs all of this on every pull request plus gitleaks, zizmor,
+osv-scanner, an SBOM and five platform builds; `nightly.yml` holds the long
+runs. What runs and the required checks: `docs/qa/`.
 
 ## 5. Security rules (binding for humans and Claude)
 
@@ -278,15 +261,21 @@ CI/release/signing workflows, `SECURITY.md`, `LICENSE`.
 - **Specs:** requirement IDs (`SR-`, `V-`, `B-`, `S-`) are stable; reference
   them in code comments next to the code that implements them.
 - **Accessibility:** every screen usable with screen readers and large fonts.
+- **QA:** an epic is done only after its QA pass (`docs/qa/definition-of-done.md`)
+  has the result *passed*. When an epic thread reports done, the coordinator
+  starts a "QA-Pass E<n>" thread without asking; it writes `docs/qa/E<n>.md`.
+  PR checks (`ci.yml`) are merge blockers; nightly runs (`nightly.yml`) open an
+  issue when red. Every new parser needs a fuzz target; every epic follows the
+  coverage targets in the Definition of Done.
 
 ## 7. Roadmap context
 
 | Milestone | Content |
 | --------- | ------- |
-| M0 | Foundation: repo, CI, specs (E1, E2), spikes (YubiKey on Windows/iOS, iOS AutoFill memory budget, QR decoding in Rust), audit funding application |
+| M0 | Foundation: repo, CI, specs (E1, E2), spikes (YubiKey on Windows/iOS, iOS AutoFill memory budget, QR decoding in Rust) |
 | M1 | Offline MVP on **Android and Linux**: codes, secure storage, lock, encrypted backup, hardening |
 | M2 | iOS, macOS, Windows; all importers, OTP AutoFill, YubiKey unlock, launcher widgets |
-| M3 | Beta and audit: external audit, fixes, store betas |
+| M3 | Beta: fixes, store betas |
 | M4 | Release 1.0 on all five platforms and stores |
 | 1.1 | Folder sync (opt-in, E2E-encrypted), browser extensions, Aegis icon packs |
 | 1.2 | Aegis export |
@@ -301,7 +290,6 @@ for it but do not build it early.
 - Remove `_(planned)_` and `_(unverified)_` markers once a command is verified in CI.
 - Decisions live in `docs/decisions/` (ADR format, first: `0001-foundation.md`);
   this file only summarises them.
-- Open placeholders to resolve once the GitHub repository exists: `OWNER` in
-  `core/Cargo.toml`, `.github/CODEOWNERS`, `REUSE.toml`; add a security contact
-  e-mail to `SECURITY.md`; apply `docs/qa/branch-protection.md`; the Android
-  application ID `org.rigel.rigel` is provisional.
+- Placeholders to resolve once GitHub exists: `OWNER` (`core/Cargo.toml`,
+  `.github/CODEOWNERS`, `REUSE.toml`), security contact in `SECURITY.md`,
+  branch protection per `docs/qa/branch-protection.md`, Android ID `org.rigel.rigel`.
