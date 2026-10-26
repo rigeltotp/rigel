@@ -252,6 +252,10 @@ CI/release/signing workflows, `SECURITY.md`, `LICENSE`.
   covers all contributed code. One logical change per commit.
 - **Branches/PRs:** work on feature branches, never push to `main`. Reference
   the epic (`E3`, …) in the PR. Keep PRs small.
+  Claude pushes its own branches to `rigeltotp/rigel` and opens PRs; the
+  maintainer merges them (squash only). Never merge a PR yourself. Commit
+  and PR texts contain no `Co-Authored-By`, `Claude-Session` or other
+  session links (public-identity rule).
 - **Rust:** edition 2021+, `clippy -D warnings`, errors via `thiserror` in
   libraries, no `unwrap()`/`expect()` outside tests and proven-infallible
   cases (comment why).
