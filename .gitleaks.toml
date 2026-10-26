@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# gitleaks configuration: default rules plus one narrow allowlist.
+title = "Rigel"
+
+[extend]
+useDefault = true
+
+# The RFC 6238 test seed ("12345678901234567890" in Base32) appears in specs
+# and format test files by design (CLAUDE.md rule 18: test data uses RFC
+# vectors or fake seeds). Allow exactly this value, nothing broader: any other
+# seed-like string is still reported.
+[[allowlists]]
+description = "RFC 6238 test seed"
+targetRules = ["generic-api-key"]
+regexes = [
+  '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
+  '''gezdgnbvgy3tqojq====''', # deliberately malformed variant of the same seed (invalid test file)
+]

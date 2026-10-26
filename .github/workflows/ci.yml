@@ -30,6 +30,8 @@ jobs:
       # removed from the git config right after the fetch.
       - name: Checkout
         shell: bash
+        # jobs default to core/ or app/, which do not exist before checkout
+        working-directory: ${{ github.workspace }}
         env:
           TOKEN: ${{ github.token }}
         run: |
@@ -92,6 +94,8 @@ jobs:
       # removed from the git config right after the fetch.
       - name: Checkout
         shell: bash
+        # jobs default to core/ or app/, which do not exist before checkout
+        working-directory: ${{ github.workspace }}
         env:
           TOKEN: ${{ github.token }}
         run: |
@@ -127,6 +131,8 @@ jobs:
       # removed from the git config right after the fetch.
       - name: Checkout
         shell: bash
+        # jobs default to core/ or app/, which do not exist before checkout
+        working-directory: ${{ github.workspace }}
         env:
           TOKEN: ${{ github.token }}
         run: |
@@ -156,6 +162,8 @@ jobs:
       # removed from the git config right after the fetch.
       - name: Checkout
         shell: bash
+        # jobs default to core/ or app/, which do not exist before checkout
+        working-directory: ${{ github.workspace }}
         env:
           TOKEN: ${{ github.token }}
         run: |
@@ -183,6 +191,8 @@ jobs:
       # removed from the git config right after the fetch.
       - name: Checkout
         shell: bash
+        # jobs default to core/ or app/, which do not exist before checkout
+        working-directory: ${{ github.workspace }}
         env:
           TOKEN: ${{ github.token }}
         run: |
@@ -214,6 +224,8 @@ jobs:
       # removed from the git config right after the fetch.
       - name: Checkout
         shell: bash
+        # jobs default to core/ or app/, which do not exist before checkout
+        working-directory: ${{ github.workspace }}
         env:
           TOKEN: ${{ github.token }}
         run: |
@@ -243,6 +255,8 @@ jobs:
       # removed from the git config right after the fetch.
       - name: Checkout
         shell: bash
+        # jobs default to core/ or app/, which do not exist before checkout
+        working-directory: ${{ github.workspace }}
         env:
           TOKEN: ${{ github.token }}
         run: |
@@ -265,6 +279,8 @@ jobs:
       # removed from the git config right after the fetch.
       - name: Checkout
         shell: bash
+        # jobs default to core/ or app/, which do not exist before checkout
+        working-directory: ${{ github.workspace }}
         env:
           TOKEN: ${{ github.token }}
         run: |
@@ -323,6 +339,8 @@ jobs:
       # removed from the git config right after the fetch.
       - name: Checkout
         shell: bash
+        # jobs default to core/ or app/, which do not exist before checkout
+        working-directory: ${{ github.workspace }}
         env:
           TOKEN: ${{ github.token }}
         run: |
