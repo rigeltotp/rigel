@@ -58,6 +58,10 @@ git config --global commit.gpgsign true
    change per commit.
 4. Keep pull requests small and reference the epic (`E3`, …).
 5. Fill in the pull request template, including the security checklist.
+6. Pull requests are merged by the maintainer with **squash merge** only. The
+   pull request title becomes the commit message, so it must be a Conventional
+   Commit line. The Claude assistant may push branches and open pull requests;
+   it never merges and never adds `Co-Authored-By` or session-link lines.
 
 ## Before you open a pull request
 
