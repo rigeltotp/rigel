@@ -1,6 +1,6 @@
 version = 1
 SPDX-PackageName = "Rigel"
-SPDX-PackageDownloadLocation = "https://github.com/OWNER/rigel"
+SPDX-PackageDownloadLocation = "https://github.com/rigeltotp/rigel"
 
 # Files that cannot carry a header (data, generated, licenses, platform
 # templates from `flutter create`). Source files carry SPDX headers; the

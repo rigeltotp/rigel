@@ -290,6 +290,5 @@ for it but do not build it early.
 - Remove `_(planned)_` and `_(unverified)_` markers once a command is verified in CI.
 - Decisions live in `docs/decisions/` (ADR format, first: `0001-foundation.md`);
   this file only summarises them.
-- Placeholders to resolve once GitHub exists: `OWNER` (`core/Cargo.toml`,
-  `.github/CODEOWNERS`, `REUSE.toml`), security contact in `SECURITY.md`,
+- Open before the first public release: security contact in `SECURITY.md`,
   branch protection per `docs/qa/branch-protection.md`, Android ID `org.rigel.rigel`.
