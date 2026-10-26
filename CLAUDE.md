@@ -290,5 +290,4 @@ for it but do not build it early.
 - Remove `_(planned)_` and `_(unverified)_` markers once a command is verified in CI.
 - Decisions live in `docs/decisions/` (ADR format, first: `0001-foundation.md`);
   this file only summarises them.
-- Open before the first public release: security contact e-mail in `SECURITY.md` (with 1.0),
-  branch protection per `docs/qa/branch-protection.md`, Android ID `org.rigel.rigel`.
+- Open before the first public release: branch protection per `docs/qa/branch-protection.md`, Android ID `org.rigel.rigel`.

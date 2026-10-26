@@ -24,8 +24,9 @@ Report privately through GitHub's private vulnerability reporting:
 go to the repository's **Security** tab and choose
 **Report a vulnerability**. Only the maintainers can see these reports.
 
-Until release 1.0 this is the only reporting channel; an e-mail contact is
-added with 1.0. You need a GitHub account to report.
+If you have no GitHub account, write to **rigeltotp@proton.me**. Please keep
+the report short and do not include real secrets; we will agree on an
+encrypted channel for details in our reply.
 
 Please include, as far as you can:
 
