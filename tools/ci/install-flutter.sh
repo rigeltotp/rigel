@@ -31,9 +31,10 @@ file="$dest/$(basename "$archive")"
 curl --proto '=https' --tlsv1.2 -sSfL "$BASE/$archive" -o "$file"
 
 if command -v sha256sum >/dev/null; then
-  actual="$(sha256sum "$file" | cut -d' ' -f1)"
+  # read from stdin: with a file name, Git Bash on Windows prefixes the hash with a backslash
+  actual="$(sha256sum < "$file" | cut -d' ' -f1)"
 else
-  actual="$(shasum -a 256 "$file" | cut -d' ' -f1)"
+  actual="$(shasum -a 256 < "$file" | cut -d' ' -f1)"
 fi
 if [ "$actual" != "$sha256" ]; then
   echo "Flutter archive checksum mismatch: expected $sha256, got $actual" >&2

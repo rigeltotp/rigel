@@ -31,3 +31,8 @@ http://labs.creativecommons.org/licenses/   # license text embedded in the Flutt
 http://www.w3c.orghttp://dev.w3.org/        # font license text (Ahem test font) in the Flutter engine
 https://dartbug.com/                        # bug link in a Dart VM error message
 https://pub.dev/                            # package hint in a Dart framework error message
+http://www.unicode.org/copyright.html      # ICU license notice (http variant) embedded in the Flutter engine
+https://android.googlesource.com/toolchain/llvm-project   # compiler identification string in NDK-built native libraries
+https://llvm.googlesource.com/a/llvm-project              # compiler identification string in NDK-built native libraries
+https://developer.android.com/guide/topics/permissions/overview   # documentation link in AndroidX / Flutter embedding code
+https://developer.android.com/reference/android/view/View   # documentation link in Flutter embedding code
