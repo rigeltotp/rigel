@@ -87,4 +87,4 @@ the problem before disclosure.
 ## Security design
 
 The threat model and the formats are documented in
-[`docs/`](docs/README.md). An external security audit is planned before 1.0.
+[`docs/`](docs/README.md).

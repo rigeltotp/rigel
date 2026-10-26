@@ -238,8 +238,10 @@ traffic belongs to the sync service, which sees only ciphertext (T6).
   DCO sign-off, hardware-key 2FA for maintainers.
 - SR-33: Reproducible builds, signed release artifacts (Sigstore or
   minisign) and an SBOM per release (E16).
-- SR-34: External security audit before 1.0; private vulnerability
-  reporting from the first public commit (`SECURITY.md`).
+- SR-34: Private vulnerability reporting from the first public commit
+  (`SECURITY.md`). No external security audit is planned for now (decision
+  of the maintainer, 2026-10-25); the code is open source and reviewable, and
+  an audit is reconsidered once a stable user base exists.
 
 Residual risk: a compromised maintainer account; malicious code in an
 audited dependency that slips past review.
