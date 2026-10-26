@@ -243,6 +243,10 @@ CI/release/signing workflows, `SECURITY.md`, `LICENSE`.
 
 - **Language:** code, comments, commits, PRs and docs in English. UI ships in
   German and English from the start; no hard-coded user-facing strings.
+- **Identity and privacy:** the public identity is the pseudonym `rigeldev`,
+  e-mail `rigeltotp@proton.me`. The repository is public: never put personal
+  data (real name, private e-mail, hostnames, local paths) into commits,
+  issues, PRs, docs or test data. If it shows up in a diff, stop and report it.
 - **Commits:** Conventional Commits (`feat(core): …`, `fix(app): …`),
   signed, with DCO sign-off (`git commit -s`) so the app-store exception
   covers all contributed code. One logical change per commit.
