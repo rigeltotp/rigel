@@ -1,0 +1,22 @@
+# Rust
+/core/target/
+/core/fuzz/target/
+/core/fuzz/corpus/
+/core/fuzz/artifacts/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Never commit secrets or real backups
+*.rigel.age
+!docs/formats/**/*.rigel.age
+*.keystore
+*.jks
+key.properties
+*.p12
+*.mobileprovision
+.env
