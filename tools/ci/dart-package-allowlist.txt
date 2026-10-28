@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Closed set of Dart packages allowed in app/pubspec.lock (transitive included).
+# New entries need a written reason in the PR and CODEOWNERS review. None may do networking.
+async
+boolean_selector
+characters
+clock
+collection
+fake_async
+flutter
+flutter_lints
+flutter_localizations
+flutter_test
+intl
+leak_tracker
+leak_tracker_flutter_testing
+leak_tracker_testing
+lints
+matcher
+material_color_utilities
+meta
+path
+sky_engine
+source_span
+stack_trace
+stream_channel
+string_scanner
+term_glyph
+test_api
+vector_math
+vm_service

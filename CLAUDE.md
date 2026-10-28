@@ -196,8 +196,10 @@ runs. What runs and the required checks: `docs/qa/`.
 ### No network
 8. Never add network code or dependencies (HTTP clients, sockets, DNS,
    WebView with remote content, Firebase/Google Play Services, Dart `http`/
-   `dio`, etc.). `cargo deny` and the CI network check ban these; do not
-   weaken either. Never add an internet or network entitlement/permission on
+   `dio`, etc.). `cargo deny` (closed `[bans] allow` crate list), clippy `disallowed-*` (std::net, process),
+   and `check_policy.py` (allowlists `core/deny.toml` and `tools/ci/dart-package-allowlist.txt`,
+   Rust/Dart/native source scans) ban these; do not weaken any. New packages go on an allowlist
+   only with a written reason. Never add an internet or network entitlement/permission on
    any platform.
 9. Browser extensions (1.1) talk to the desktop app **only** via Native
    Messaging (local). Sync (1.1) only reads/writes an encrypted folder.

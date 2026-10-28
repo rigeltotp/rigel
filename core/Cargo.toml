@@ -45,6 +45,9 @@ cast_sign_loss = "deny"
 cast_possible_wrap = "deny"
 indexing_slicing = "warn"
 arithmetic_side_effects = "warn"
+# Network and process access through std (see clippy.toml).
+disallowed_types = "deny"
+disallowed_methods = "deny"
 
 [profile.release]
 # Integer overflow is a bug, also in release builds.

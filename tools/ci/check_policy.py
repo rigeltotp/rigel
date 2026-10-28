@@ -4,11 +4,18 @@
 
 Enforces the promises in CLAUDE.md that tools like cargo-deny cannot see:
 
-  no-network-rust     Cargo.lock contains no crate from the deny list in
-                      core/deny.toml (second line of defence after cargo-deny).
-  no-network-dart     pubspec.lock contains no networking, analytics, crash
-                      reporting or Google-services packages.
-  no-network-source   Dart sources use no sockets, HTTP or WebSockets.
+  no-network-rust     Cargo.lock contains only crates on the closed allowlist
+                      ([bans] allow in core/deny.toml) and none from its deny
+                      list (second line of defence after cargo-deny).
+  no-network-rust-source
+                      Rust sources use no std::net, sockets or processes.
+  no-network-dart     pubspec.lock contains only packages on the allowlist
+                      tools/ci/dart-package-allowlist.txt and none from the
+                      deny list (networking, analytics, Google services).
+  no-network-source   Dart sources use no sockets, HTTP, WebSockets,
+                      Image.network, Process or dart:ffi.
+  no-network-native   Kotlin, Java, Swift, Objective-C and C/C++ sources of the
+                      app and of all plugins use no network APIs.
   android-manifest    The main Android manifest requests no network
                       permission, disables auto-backup and exports nothing but
                       the launcher activity.
@@ -29,11 +36,13 @@ Standard library only, so it runs on every CI runner without installs.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 import tomllib
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
 
@@ -63,15 +72,53 @@ BANNED_DART_PREFIXES = (
     "onesignal", "segment_", "matomo", "countly", "instabug", "crashlytics",
 )
 
-# Dart identifiers that open network connections.
+DART_PACKAGE_ALLOWLIST = "tools/ci/dart-package-allowlist.txt"
+
+# Dart identifiers that open network connections or reach them indirectly.
 DART_NETWORK_PATTERNS = [
-    re.compile(r"\b(HttpClient|HttpServer|HttpRequest)\b"),
+    re.compile(r"\b(HttpClient|HttpServer|HttpRequest|HttpOverrides)\b"),
+    re.compile(r"\b(Image\.network|NetworkImage|NetworkAssetBundle)\b"),
+    re.compile(r"\bProcess\s*\.\s*(run|runSync|start)\b"),
+    re.compile(r"""import\s+['"]dart:ffi['"]"""),
     re.compile(r"\b(Raw)?(Secure)?(Server)?Socket\b"),
     re.compile(r"\bRawDatagramSocket\b"),
     re.compile(r"\bWebSocket\b"),
     re.compile(r"\bInternetAddress\b"),
     re.compile(r"""import\s+['"]dart:html['"]"""),
     re.compile(r"""import\s+['"]package:web/"""),
+]
+
+DART_SOURCE_DIRS = ("app/lib", "app/test", "app/integration_test", "app/tool", "app/bin")
+# Generated flutter_rust_bridge code legitimately imports dart:ffi.
+DART_FFI_ALLOWED = re.compile(r"(^|/)(frb_generated[^/]*|.*\.g\.dart)$")
+
+# Rust: std and OS-level network or process access needs no crate.
+RUST_NETWORK_PATTERNS = [
+    re.compile(r"\bstd\s*::\s*net\b"),
+    re.compile(r"\bcore\s*::\s*net\b"),
+    re.compile(r"\b(TcpStream|TcpListener|UdpSocket|SocketAddr|ToSocketAddrs)\b"),
+    re.compile(r"\bstd\s*::\s*process\b"),
+    re.compile(r"\bCommand\s*::\s*new\b"),
+    re.compile(r"\blibc\s*::\s*(socket|connect|bind|listen|accept|sendto|recvfrom|getaddrinfo)\b"),
+    re.compile(r"\bnix\s*::\s*sys\s*::\s*socket\b"),
+]
+RUST_SOURCE_DIRS = ("core/crates", "core/fuzz", "native")
+
+# Native (Kotlin/Java/Swift/ObjC/C/C++) network APIs. App-owned folders and the
+# sources of every plugin in package_config.json are scanned.
+NATIVE_SUFFIXES = {".kt", ".java", ".swift", ".m", ".mm", ".h", ".c", ".cc", ".cpp", ".cxx", ".hpp"}
+NATIVE_DIRS = ("app/android", "app/ios", "app/macos", "app/windows", "app/linux", "native")
+NATIVE_NETWORK_PATTERNS = [
+    re.compile(r"\b(URLSession|NSURLConnection|NSURLSession|CFNetwork|CFHTTP\w*|NWConnection|NWListener)\b"),
+    re.compile(r"\bimport\s+Network\b"),
+    re.compile(r"\b(OkHttp\w*|HttpURLConnection|HttpsURLConnection|WebView|CronetEngine)\b"),
+    re.compile(r"\bjava\.net\.|\bandroid\.net\.(http|wifi|ConnectivityManager)|\bjavax\.net\."),
+    re.compile(r"\b(WinHttp\w*|InternetOpen\w*|URLDownloadToFile|WSAStartup|WSASocket)\b"),
+    re.compile(r"\b(getaddrinfo|gethostbyname|inet_pton|inet_ntop)\s*\("),
+    re.compile(r"(?<![\w.])(socket|connect|sendto|recvfrom)\s*\([^)]*\b(AF_INET6?|SOCK_STREAM|SOCK_DGRAM)\b"),
+    re.compile(r"<(sys/socket|netinet/in|arpa/inet|winsock2?|ws2tcpip|winhttp|wininet)\.h>"),
+    re.compile(r"\b(libsoup|SoupSession|GSocket\w*|GNetworkMonitor|GDBus\w*Connection)\b"),
+    re.compile(r"\bimport\s+(Foundation\.NSURL|SystemConfiguration)\b"),
 ]
 
 APPLE_NETWORK_ENTITLEMENTS = (
@@ -116,6 +163,14 @@ def banned_rust_crates(root: Path) -> set[str]:
     return names
 
 
+def allowed_rust_crates(root: Path) -> set[str]:
+    deny = tomllib.loads((root / "core/deny.toml").read_text(encoding="utf-8"))
+    names = set()
+    for item in deny.get("bans", {}).get("allow", []):
+        names.add(item["name"] if isinstance(item, dict) else str(item).split("@")[0])
+    return names
+
+
 def check_no_network_rust(root: Path, res: Result) -> None:
     lock = root / "core/Cargo.lock"
     if not lock.exists():
@@ -124,14 +179,41 @@ def check_no_network_rust(root: Path, res: Result) -> None:
     banned = banned_rust_crates(root)
     if not banned:
         res.fail("no-network-rust", "core/deny.toml has an empty [bans] deny list")
+    allowed = allowed_rust_crates(root)
+    if not allowed:
+        res.fail("no-network-rust", "core/deny.toml has no [bans] allow list; the crate set must be closed")
     packages = tomllib.loads(lock.read_text(encoding="utf-8")).get("package", [])
     for pkg in packages:
-        if pkg["name"] in banned:
-            res.fail("no-network-rust", f"banned crate in Cargo.lock: {pkg['name']} {pkg.get('version', '')}")
+        name, version = pkg["name"], pkg.get("version", "")
+        if name in banned:
+            res.fail("no-network-rust", f"banned crate in Cargo.lock: {name} {version}")
+        elif allowed and name not in allowed:
+            res.fail("no-network-rust", f"crate not on the allowlist (core/deny.toml [bans] allow): {name} {version}")
+
+
+def check_no_network_rust_source(root: Path, res: Result) -> None:
+    for base in RUST_SOURCE_DIRS:
+        for path in sorted((root / base).rglob("*.rs")):
+            rel = path.relative_to(root).as_posix()
+            if "/target/" in rel:
+                continue
+            code = strip_rust_comments(path.read_text(encoding="utf-8"))
+            for pattern in RUST_NETWORK_PATTERNS:
+                m = pattern.search(code)
+                if m:
+                    res.fail("no-network-rust-source", f"{rel}: '{m.group(0)}' is not allowed (network or process access)")
 
 
 def dart_package_banned(name: str) -> bool:
     return name in BANNED_DART_PACKAGES or name.startswith(BANNED_DART_PREFIXES)
+
+
+def allowed_dart_packages(root: Path) -> set[str]:
+    path = root / DART_PACKAGE_ALLOWLIST
+    if not path.exists():
+        return set()
+    lines = (ln.split("#")[0].strip() for ln in path.read_text(encoding="utf-8").splitlines())
+    return {ln for ln in lines if ln}
 
 
 def check_no_network_dart(root: Path, res: Result) -> None:
@@ -139,6 +221,9 @@ def check_no_network_dart(root: Path, res: Result) -> None:
     if not lock.exists():
         res.fail("no-network-dart", "app/pubspec.lock is missing; commit it")
         return
+    allowed = allowed_dart_packages(root)
+    if not allowed:
+        res.fail("no-network-dart", f"{DART_PACKAGE_ALLOWLIST} is missing or empty; the package set must be closed")
     in_packages = False
     for line in lock.read_text(encoding="utf-8").splitlines():
         if line.startswith("packages:"):
@@ -147,8 +232,13 @@ def check_no_network_dart(root: Path, res: Result) -> None:
         if in_packages and line and not line.startswith(" "):
             in_packages = False
         m = re.match(r"^  ([A-Za-z0-9_]+):\s*$", line)
-        if in_packages and m and dart_package_banned(m.group(1)):
-            res.fail("no-network-dart", f"banned Dart package in pubspec.lock: {m.group(1)}")
+        if not (in_packages and m):
+            continue
+        name = m.group(1)
+        if dart_package_banned(name):
+            res.fail("no-network-dart", f"banned Dart package in pubspec.lock: {name}")
+        elif allowed and name not in allowed:
+            res.fail("no-network-dart", f"Dart package not on {DART_PACKAGE_ALLOWLIST}: {name}")
 
 
 def strip_dart_comments(text: str) -> str:
@@ -157,14 +247,53 @@ def strip_dart_comments(text: str) -> str:
 
 
 def check_no_network_source(root: Path, res: Result) -> None:
-    for base in ("app/lib", "app/test"):
+    for base in DART_SOURCE_DIRS:
         for path in sorted((root / base).rglob("*.dart")):
+            rel = path.relative_to(root).as_posix()
             code = strip_dart_comments(path.read_text(encoding="utf-8"))
             for pattern in DART_NETWORK_PATTERNS:
                 m = pattern.search(code)
+                if not m:
+                    continue
+                if "dart:ffi" in m.group(0) and DART_FFI_ALLOWED.search(rel):
+                    continue
+                res.fail("no-network-source", f"{rel}: network API '{m.group(0)}' is not allowed")
+
+
+def plugin_source_dirs(root: Path) -> list[Path]:
+    """Source roots of all Dart packages, from app/.dart_tool/package_config.json."""
+    cfg = root / "app/.dart_tool/package_config.json"
+    if not cfg.exists():
+        return []
+    dirs = []
+    for pkg in json.loads(cfg.read_text(encoding="utf-8")).get("packages", []):
+        uri = pkg.get("rootUri", "")
+        if not uri.startswith("file://"):
+            continue
+        base = Path(unquote(urlparse(uri).path))
+        if base.is_dir() and base != root / "app":
+            dirs.append(base)
+    return dirs
+
+
+def check_no_network_native(root: Path, res: Result) -> None:
+    bases = [root / d for d in NATIVE_DIRS] + plugin_source_dirs(root)
+    for base in bases:
+        for path in sorted(base.rglob("*")) if base.exists() else []:
+            if not path.is_file() or path.suffix not in NATIVE_SUFFIXES:
+                continue
+            parts = path.parts
+            if any(p in ("build", ".gradle", "Pods", "ephemeral", ".symlinks") for p in parts):
+                continue
+            code = strip_dart_comments(path.read_text(encoding="utf-8", errors="replace"))
+            for pattern in NATIVE_NETWORK_PATTERNS:
+                m = pattern.search(code)
                 if m:
-                    rel = path.relative_to(root)
-                    res.fail("no-network-source", f"{rel}: network API '{m.group(0)}' is not allowed")
+                    try:
+                        rel = path.relative_to(root).as_posix()
+                    except ValueError:
+                        rel = path.as_posix()
+                    res.fail("no-network-native", f"{rel}: network API '{m.group(0).strip()}' is not allowed")
 
 
 def check_android_manifest(root: Path, res: Result) -> None:
@@ -284,8 +413,10 @@ def check_spdx_headers(root: Path, res: Result) -> None:
 
 CHECKS = {
     "no-network-rust": check_no_network_rust,
+    "no-network-rust-source": check_no_network_rust_source,
     "no-network-dart": check_no_network_dart,
     "no-network-source": check_no_network_source,
+    "no-network-native": check_no_network_native,
     "android-manifest": check_android_manifest,
     "apple-entitlements": check_apple_entitlements,
     "flatpak": check_flatpak,

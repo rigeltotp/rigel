@@ -31,3 +31,20 @@ http://labs.creativecommons.org/licenses/   # license text embedded in the Flutt
 http://www.w3c.orghttp://dev.w3.org/        # font license text (Ahem test font) in the Flutter engine
 https://dartbug.com/                        # bug link in a Dart VM error message
 https://pub.dev/                            # package hint in a Dart framework error message
+http://anglebug.com/42267082                # ANGLE bug reference in a message inside flutter_windows.dll (Flutter engine)
+https://shorturl.at/drFY7)                  # link in an ANGLE/Skia shader comment embedded in flutter_windows.dll
+https://www.khronos.org/spir/visualizer/    # SPIR-V docs link embedded in flutter_windows.dll (Flutter engine)
+http://schemas.microsoft.com/SMI/2016/WindowsSettings  # XML namespace in the Windows app manifest (DPI awareness), not a connection
+http://www.unicode.org/copyright.html      # Unicode license text embedded in the Flutter engine / ICU data
+https://android.googlesource.com/toolchain/llvm-project  # compiler version string in NDK-built libraries
+https://llvm.googlesource.com/a/llvm-project              # compiler version string in NDK-built libraries
+https://developer.android.com/guide/topics/permissions/overview  # documentation link in Android framework strings
+https://developer.android.com/reference/android/view/View#announceForAccessibility(java.lang.CharSequence)  # doc link in Flutter engine accessibility message
+http://certs.apple.com/                     # Apple code-signature certificate extension in FlutterMacOS.framework (CA issuer URL, not contacted by the app)
+http://crl.apple.com/                       # Apple code-signature certificate revocation list URL in FlutterMacOS.framework
+http://ocsp.apple.com/                      # Apple code-signature OCSP URL in FlutterMacOS.framework
+http://www.apple.com/appleca                # Apple CA policy URL in the code signature of FlutterMacOS.framework
+https://www.apple.com/appleca/              # Apple CA policy URL in the code signature of FlutterMacOS.framework
+https://www.apple.com/certificateauthority/ # Apple CA policy URL in the code signature of FlutterMacOS.framework
+http://scripts.sil.org/OFL                  # SIL Open Font License text embedded in the Flutter engine
+https://llvm.googlesource.com/llvm-project  # compiler version string in the FlutterMacOS debug symbols
