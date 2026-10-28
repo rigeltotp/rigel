@@ -3,3 +3,17 @@ allow-expect-in-tests = true
 allow-panic-in-tests = true
 allow-indexing-slicing-in-tests = true
 allow-print-in-tests = true
+
+# No network or process access, not even through the standard library
+# (CLAUDE.md rule 8). Enforced by `disallowed_types`/`disallowed_methods`.
+disallowed-types = [
+    { path = "std::net::TcpStream", reason = "Rigel has no network code" },
+    { path = "std::net::TcpListener", reason = "Rigel has no network code" },
+    { path = "std::net::UdpSocket", reason = "Rigel has no network code" },
+    { path = "std::net::SocketAddr", reason = "Rigel has no network code" },
+    { path = "std::process::Command", reason = "no child processes (no curl and friends)" },
+]
+disallowed-methods = [
+    { path = "std::process::Command::new", reason = "no child processes (no curl and friends)" },
+    { path = "std::net::ToSocketAddrs::to_socket_addrs", reason = "DNS lookup: Rigel has no network code" },
+]

@@ -54,6 +54,16 @@ multiple-versions = "warn"
 wildcards = "deny"
 allow-wildcard-paths = true
 highlight = "all"
+# Closed set: any crate not listed here fails `cargo deny check bans`, so every
+# new dependency (transitive ones included) is added deliberately and reviewed
+# (CODEOWNERS). check_policy.py enforces the same list on Cargo.lock. Only
+# add entries with a written reason in the PR.
+allow = [
+    { name = "rigel-core" },
+    { name = "rigel-platform" },
+    { name = "rigel-ffi-dart" },
+    { name = "rigel-ffi-uniffi" },
+]
 # Rigel contains no network code (CLAUDE.md, §1 and rule 8). These crates
 # provide HTTP, TLS, sockets, DNS, async network runtimes, telemetry or crash
 # reporting. Do not remove entries to make a dependency fit; find another
@@ -100,6 +110,40 @@ deny = [
     # Vault encryption is done per record in Rust (docs/specs/vault-format.md).
     { crate = "sqlcipher", reason = "vault design: per-record AEAD, no SQLCipher" },
 ]
+
+# OS binding crates are needed by the platform layer, but their network
+# features are not. Features are listed explicitly; `exact` is not used, so
+# any other feature of these crates stays allowed.
+[[bans.features]]
+crate = "windows"
+deny = [
+    "Win32_Networking_WinHttp", "Win32_Networking_WinInet", "Win32_Networking_WinSock",
+    "Win32_Networking_WebSocket", "Win32_Networking_ActiveDirectory",
+    "Win32_NetworkManagement_IpHelper", "Win32_NetworkManagement_WiFi",
+    "Win32_NetworkManagement_Dns", "Win32_NetworkManagement_Ndis",
+    "Networking", "Web_Http", "Networking_Sockets",
+]
+
+[[bans.features]]
+crate = "windows-sys"
+deny = [
+    "Win32_Networking_WinHttp", "Win32_Networking_WinInet", "Win32_Networking_WinSock",
+    "Win32_Networking_WebSocket", "Win32_Networking_ActiveDirectory",
+    "Win32_NetworkManagement_IpHelper", "Win32_NetworkManagement_WiFi",
+    "Win32_NetworkManagement_Dns", "Win32_NetworkManagement_Ndis",
+]
+
+[[bans.features]]
+crate = "objc2-foundation"
+deny = ["NSURLSession", "NSURLConnection", "NSURLRequest", "NSURLDownload", "NSNetServices", "NSStream"]
+
+[[bans.features]]
+crate = "objc2-network"
+deny = ["default", "all"]
+
+[[bans.features]]
+crate = "jni"
+deny = ["invocation"]
 
 [sources]
 unknown-registry = "deny"

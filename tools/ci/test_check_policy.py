@@ -20,6 +20,10 @@ COPY = [
     "core/Cargo.lock",
     "app/pubspec.lock",
     "app/lib",
+    "app/android/app/src",
+    "app/ios/Runner",
+    "app/linux/runner",
+    "tools/ci/dart-package-allowlist.txt",
     "app/android/app/src/main/AndroidManifest.xml",
     "app/macos/Runner/Release.entitlements",
     ".github",
@@ -57,6 +61,58 @@ class PolicyTest(unittest.TestCase):
         with open(self.tmp / "core/Cargo.lock", "a", encoding="utf-8") as f:
             f.write('\n[[package]]\nname = "reqwest"\nversion = "0.12.0"\n')
         self.assertTrue(self.errors("no-network-rust"))
+
+    def test_unlisted_crate_in_lockfile(self) -> None:
+        with open(self.tmp / "core/Cargo.lock", "a", encoding="utf-8") as f:
+            f.write('\n[[package]]\nname = "smol"\nversion = "2.0.0"\n')
+        self.assertTrue(self.errors("no-network-rust"))
+
+    def test_rust_std_net(self) -> None:
+        lib = self.tmp / "core/crates/core/src/limits.rs"
+        for code in (
+            'fn f() { std::net::TcpStream::connect("203.0.113.1:443"); }',
+            "use std::net::UdpSocket;",
+            'fn f() { std::process::Command::new("curl"); }',
+            "fn f() { libc::socket(2, 1, 0); }",
+        ):
+            lib.write_text(code + "\n")
+            self.assertTrue(self.errors("no-network-rust-source"), code)
+        lib.write_text("// std::net is banned\n")
+        self.assertEqual(self.errors("no-network-rust-source"), [])
+
+    def test_unlisted_dart_package(self) -> None:
+        self.edit("app/pubspec.lock", "packages:\n", 'packages:\n  some_new_pkg:\n    dependency: "direct main"\n')
+        self.assertTrue(self.errors("no-network-dart"))
+
+    def test_dart_indirect_network(self) -> None:
+        main = self.tmp / "app/lib/net.dart"
+        for code in (
+            "void f() { Image.network('https://x'); }",
+            "void f() { Process.run('curl', []); }",
+            "import 'dart:ffi';",
+            "void f() { HttpOverrides.global = null; }",
+        ):
+            main.write_text(code + "\n")
+            self.assertTrue(self.errors("no-network-source"), code)
+        gen = self.tmp / "app/lib/frb_generated.dart"
+        gen.write_text("import 'dart:ffi';\n")
+        main.unlink()
+        self.assertEqual(self.errors("no-network-source"), [])
+
+    def test_native_network(self) -> None:
+        kt = self.tmp / "app/android/app/src/main/kotlin/Net.kt"
+        for rel, code in (
+            ("app/android/app/src/main/kotlin/Net.kt", "val c = OkHttpClient()"),
+            ("app/android/app/src/main/kotlin/Net.kt", "import java.net.URL"),
+            ("app/ios/Runner/Net.swift", "let s = URLSession.shared"),
+            ("app/linux/runner/net.cc", "#include <sys/socket.h>"),
+        ):
+            path = self.tmp / rel
+            path.write_text(code + "\n")
+            self.assertTrue(self.errors("no-network-native"), code)
+            path.unlink()
+        self.assertEqual(self.errors("no-network-native"), [])
+        self.assertTrue(kt.parent.exists())
 
     def test_banned_dart_package(self) -> None:
         self.edit("app/pubspec.lock", "packages:\n", 'packages:\n  firebase_core:\n    dependency: "direct main"\n')
