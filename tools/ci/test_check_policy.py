@@ -118,7 +118,7 @@ class PolicyTest(unittest.TestCase):
         lib.write_text("// SPDX-License-Identifier: GPL-3.0-or-later\nuse chacha20poly1305::XChaCha20Poly1305;\n")
         self.assertTrue(self.errors("crypto-facade"))
         facade = self.tmp / "core/crates/core/src/crypto/aead.rs"
-        facade.parent.mkdir(parents=True)
+        facade.parent.mkdir(parents=True, exist_ok=True)
         facade.write_text("use chacha20poly1305::XChaCha20Poly1305;\n")
         lib.unlink()
         self.assertEqual(self.errors("crypto-facade"), [])
