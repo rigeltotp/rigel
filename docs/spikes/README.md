@@ -14,4 +14,4 @@ the spec section it changes.
 | `windows-hello-slot` | Is the Windows Hello signature deterministic enough for the device slot? | vault-format.md V-38 |
 | `age-pq` | Does `rage` support hybrid post-quantum identities with decryption? | backup-format.md B-6 |
 
-Status: not started.
+Status: `qr-rust` done (decision pending); the others not started.
