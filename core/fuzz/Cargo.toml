@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# cargo-fuzz targets, one per parser of untrusted input (SR-28). Its own
+# workspace, so libfuzzer-sys never enters the app's Cargo.lock.
+[package]
+name = "rigel-fuzz"
+version = "0.0.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+# libFuzzer bindings for `cargo fuzz` (fuzzing only, never shipped).
+libfuzzer-sys = "0.4.13"
+rigel-core = { path = "../crates/core" }
+
+[[bin]]
+name = "otpauth"
+path = "fuzz_targets/otpauth.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+members = ["."]
