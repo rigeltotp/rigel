@@ -13,7 +13,10 @@ fn check(uri: &str) {
         assert!(!(entry.issuer.is_empty() && entry.account.is_empty()));
         assert!(entry.issuer.len() <= MAX_LABEL_BYTES);
         assert!(entry.account.len() <= MAX_LABEL_BYTES);
-        assert_eq!(entry.counter.is_some(), matches!(entry.params, OtpParams::Hotp { .. }));
+        assert_eq!(
+            entry.counter.is_some(),
+            matches!(entry.params, OtpParams::Hotp { .. })
+        );
     }
 }
 
