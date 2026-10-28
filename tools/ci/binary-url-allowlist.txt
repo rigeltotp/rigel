@@ -40,3 +40,11 @@ https://android.googlesource.com/toolchain/llvm-project  # compiler version stri
 https://llvm.googlesource.com/a/llvm-project              # compiler version string in NDK-built libraries
 https://developer.android.com/guide/topics/permissions/overview  # documentation link in Android framework strings
 https://developer.android.com/reference/android/view/View#announceForAccessibility(java.lang.CharSequence)  # doc link in Flutter engine accessibility message
+http://certs.apple.com/                     # Apple code-signature certificate extension in FlutterMacOS.framework (CA issuer URL, not contacted by the app)
+http://crl.apple.com/                       # Apple code-signature certificate revocation list URL in FlutterMacOS.framework
+http://ocsp.apple.com/                      # Apple code-signature OCSP URL in FlutterMacOS.framework
+http://www.apple.com/appleca                # Apple CA policy URL in the code signature of FlutterMacOS.framework
+https://www.apple.com/appleca/              # Apple CA policy URL in the code signature of FlutterMacOS.framework
+https://www.apple.com/certificateauthority/ # Apple CA policy URL in the code signature of FlutterMacOS.framework
+http://scripts.sil.org/OFL                  # SIL Open Font License text embedded in the Flutter engine
+https://llvm.googlesource.com/llvm-project  # compiler version string in the FlutterMacOS debug symbols
