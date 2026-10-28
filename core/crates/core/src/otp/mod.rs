@@ -12,12 +12,14 @@
 
 mod code;
 mod hotp;
+pub mod otpauth;
 mod params;
 mod secret;
 mod totp;
 
 pub use code::{Code, TimedCode};
 pub use hotp::hotp;
+pub use otpauth::{OtpauthEntry, OtpauthError};
 pub use params::{Counter, Digits, OtpKind, OtpParams, Period, TimeOffset};
 pub use secret::OtpSecret;
 pub use totp::{steam, timed_code, totp};
