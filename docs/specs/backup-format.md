@@ -245,6 +245,7 @@ allocates (SR-28). They are mirrored in `core/crates/core/src/limits.rs`.
 | ----- | ----- |
 | File size (backup, export or import file) | 16 MiB |
 | QR image size | 20 MiB |
+| QR image dimensions | at most 8192 px per side and 40 megapixels, checked from the header before decoding |
 | Entries per file | 10,000 |
 | otpauth URI length | 4096 bytes |
 | Decoded secret | 1 to 256 bytes |

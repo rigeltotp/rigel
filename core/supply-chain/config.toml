@@ -25,7 +25,7 @@ criteria = "safe-to-run"
 
 [[exemptions.bitflags]]
 version = "2.13.2"
-criteria = "safe-to-run"
+criteria = "safe-to-deploy"
 
 [[exemptions.block-buffer]]
 version = "0.12.1"
@@ -37,6 +37,10 @@ criteria = "safe-to-deploy"
 
 [[exemptions.cmov]]
 version = "0.5.4"
+criteria = "safe-to-deploy"
+
+[[exemptions.crc32fast]]
+version = "1.5.3"
 criteria = "safe-to-deploy"
 
 [[exemptions.crypto-common]]
@@ -51,6 +55,10 @@ criteria = "safe-to-deploy"
 version = "0.11.3"
 criteria = "safe-to-deploy"
 
+[[exemptions.flate2]]
+version = "1.1.10"
+criteria = "safe-to-deploy"
+
 [[exemptions.hmac]]
 version = "0.13.0"
 criteria = "safe-to-deploy"
@@ -61,6 +69,14 @@ criteria = "safe-to-deploy"
 
 [[exemptions.libc]]
 version = "0.2.191"
+criteria = "safe-to-deploy"
+
+[[exemptions.miniz_oxide]]
+version = "0.9.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.png]]
+version = "0.18.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.proc-macro2]]
@@ -91,6 +107,10 @@ criteria = "safe-to-deploy"
 version = "0.11.1"
 criteria = "safe-to-deploy"
 
+[[exemptions.simd-adler32]]
+version = "0.3.10"
+criteria = "safe-to-deploy"
+
 [[exemptions.syn]]
 version = "3.0.9"
 criteria = "safe-to-deploy"
@@ -109,4 +129,16 @@ criteria = "safe-to-deploy"
 
 [[exemptions.unicode-ident]]
 version = "1.0.27"
+criteria = "safe-to-deploy"
+
+[[exemptions.zlib-rs]]
+version = "0.6.8"
+criteria = "safe-to-deploy"
+
+[[exemptions.zune-core]]
+version = "0.5.3"
+criteria = "safe-to-deploy"
+
+[[exemptions.zune-jpeg]]
+version = "0.5.15"
 criteria = "safe-to-deploy"
