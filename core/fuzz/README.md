@@ -8,6 +8,7 @@ so `libfuzzer-sys` never enters the app's `Cargo.lock`.
 | Target | Parser |
 | ------ | ------ |
 | `otpauth` | `rigel_core::otp::otpauth::parse` |
+| `qr_image` | `rigel_core::qr::decode_image_file` (PNG, JPEG) and `LumaImage::from_luma_plane` |
 
 ```sh
 cd core/fuzz

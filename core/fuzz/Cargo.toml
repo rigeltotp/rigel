@@ -23,5 +23,12 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "qr_image"
+path = "fuzz_targets/qr_image.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 members = ["."]

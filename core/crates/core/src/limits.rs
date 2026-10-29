@@ -11,6 +11,13 @@ pub const MAX_IMPORT_FILE_BYTES: usize = 16 * 1024 * 1024;
 /// Largest image passed to the QR decoder, in bytes (20 MiB).
 pub const MAX_QR_IMAGE_BYTES: usize = 20 * 1024 * 1024;
 
+/// Longest side of an image passed to the QR decoder, in pixels.
+pub const MAX_QR_IMAGE_SIDE: u32 = 8192;
+
+/// Most pixels of an image passed to the QR decoder (40 megapixels). Checked
+/// from the image header, so a small file cannot expand into a huge buffer.
+pub const MAX_QR_IMAGE_PIXELS: u64 = 40_000_000;
+
 /// Most entries in one vault, backup or import.
 pub const MAX_ENTRIES: usize = 10_000;
 
@@ -39,6 +46,7 @@ const _: () = {
     assert!(MIN_SECRET_BYTES >= 1);
     assert!(MIN_SECRET_BYTES <= MAX_SECRET_BYTES);
     assert!(MAX_OTPAUTH_URI_BYTES < MAX_IMPORT_FILE_BYTES);
+    assert!(MAX_QR_IMAGE_PIXELS <= (MAX_QR_IMAGE_SIDE as u64) * (MAX_QR_IMAGE_SIDE as u64));
     // Every entry at a typical size must fit into one import file, otherwise
     // MAX_ENTRIES would be unreachable and misleading.
     assert!(MAX_ENTRIES * 512 <= MAX_IMPORT_FILE_BYTES);
