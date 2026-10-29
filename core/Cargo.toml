@@ -32,6 +32,11 @@ sha2 = { version = "0.11.1", default-features = false }
 zeroize = { version = "1.9.1", default-features = false, features = ["alloc"] }
 # Error enums in library code (CLAUDE.md, conventions).
 thiserror = { version = "2.0.21", default-features = false }
+# PNG decoding of QR screenshots in Rust (SR-29); pure Rust, no unsafe.
+png = { version = "0.18.1", default-features = false }
+# JPEG decoding of QR screenshots and photos in Rust (SR-29); without the
+# x86/neon features, so only the safe scalar code paths are compiled.
+zune-jpeg = { version = "0.5.15", default-features = false, features = ["std"] }
 # Property tests for encoders and parsers (dev only).
 proptest = { version = "1.12.0", default-features = false, features = ["std"] }
 
